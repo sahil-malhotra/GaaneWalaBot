@@ -6,10 +6,6 @@ import requests
 from bs4 import BeautifulSoup
 import youtube_dl
 
-
-
-
-
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     level=logging.INFO)
@@ -19,25 +15,45 @@ def main():
     if not os.path.exists('temp_folder'):
         os.makedirs('temp_folder')
 
-    updater = Updater(token =  '323089477:AAGb9nhYKPZFtb_Q-l2Wbh7KDG6ASc0KMMQ')
+    updater = Updater(token='323089477:AAGb9nhYKPZFtb_Q-l2Wbh7KDG6ASc0KMMQ')
     disp = updater.dispatcher
 
     # register handlers in dispatcher
 
     disp.add_handler(CommandHandler("start", start))
     disp.add_handler(MessageHandler(Filters.text, getMusic))
-    
+    disp.add_handler(CommandHandler("random", getRan))
 
     updater.start_polling()
     updater.idle()
 
+
 def start(bot, update):
-    bot.sendMessage(chat_id=update.message.chat_id, text="Welcome to GaaneWalaApp! Enter the name of the song or press /random to get a trending song")
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text="Welcome to GaaneWalaApp! Enter the name of the song or press /random to get a trending song")
+
+def getRan(bot, update):
+    bot.sendMessage(chat_id=update.message.chat_id,
+                    text="Downloading popular song of this week")
+    newtitle = looktrend()
+    title, videoUrl = lookup(newtitle)
+    song_dict = download(title, videoUrl)
+    update.message.reply_audio(**song_dict)
 
 def getMusic(bot, update):
     title, videoUrl = lookup(update.message.text)
     song_dict = download(title, videoUrl)
     update.message.reply_audio(**song_dict)
+
+
+def looktrend():
+    url = 'http://www.billboard.com/charts/youtube'
+    req = requests.get(url)
+    soup = BeautifulSoup(req.content, 'html.parser')
+    tag = soup.find('h2', {"class":"chart-row__song"})
+    title = tag.text
+    return title
+
 
 def lookup(text):
     url = 'https://www.youtube.com'
@@ -46,6 +62,7 @@ def lookup(text):
     tag = soup.find('a', {'rel': 'spf-prefetch'})
     title, videoUrl = tag.text, url + tag['href']
     return title, videoUrl
+
 
 def download(title, videoUrl):
     ydl_opts = {
