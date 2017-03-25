@@ -5,6 +5,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import requests
 from bs4 import BeautifulSoup
 import youtube_dl
+import lyricwikia
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -47,15 +48,26 @@ def getMusic(bot, update):
     text = update.message.text.split(' ')
     newtext = ""
     if text[0] == 'artist':
-        for i in range(1, len(text)):
-            newtext = " ".join(text[i])
+        text.pop(0)
+        newtext = " ".join(text)
         title, videoUrl = lookup(newtext + " latest song")
+        song_dict = download(title, videoUrl)
+        update.message.reply_audio(**song_dict)
+
+    elif text[0] == 'lyrics':
+        text.pop(0)
+        newtext = " ".join(text)
+
+        newarr = newtext.split(',')
+        print(newarr[1], newarr[0])
+        lyrics = lyricwikia.get_lyrics(newarr[1], newarr[0])
+        update.message.reply_text(lyrics)
 
     else:
         newtext = update.message.text
         title, videoUrl = lookup(newtext)
-    song_dict = download(title, videoUrl)
-    update.message.reply_audio(**song_dict)
+        song_dict = download(title, videoUrl)
+        update.message.reply_audio(**song_dict)
 
 
 def looktrend():
@@ -82,6 +94,7 @@ def lookart(text):
     tag = soup.find('a', {'rel': 'spf-prefetch'})
     title, videoUrl = tag.text, url + tag['href']
     return title, videoUrl
+
 
 
 def download(title, videoUrl):
