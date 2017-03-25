@@ -30,7 +30,8 @@ def main():
 
 def start(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id,
-                    text="Welcome to GaaneWalaApp! Enter the name of the song or press /random to get a trending song")
+                    text="Welcome to GaaneWalaApp! Enter the name of the song or press /random to get a trending song "
+                         "or to find the latest song by any artist just type 'artist [name of the artist]'")
 
 def getRan(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id,
@@ -40,8 +41,19 @@ def getRan(bot, update):
     song_dict = download(title, videoUrl)
     update.message.reply_audio(**song_dict)
 
+
+
 def getMusic(bot, update):
-    title, videoUrl = lookup(update.message.text)
+    text = update.message.text.split(' ')
+    newtext = ""
+    if text[0] == 'artist':
+        for i in range(1, len(text)):
+            newtext = " ".join(text[i])
+        title, videoUrl = lookup(newtext + " latest song")
+
+    else:
+        newtext = update.message.text
+        title, videoUrl = lookup(newtext)
     song_dict = download(title, videoUrl)
     update.message.reply_audio(**song_dict)
 
@@ -56,6 +68,14 @@ def looktrend():
 
 
 def lookup(text):
+    url = 'https://www.youtube.com'
+    req = requests.get(url + '/results', params={'search_query': text})
+    soup = BeautifulSoup(req.content, 'html.parser')
+    tag = soup.find('a', {'rel': 'spf-prefetch'})
+    title, videoUrl = tag.text, url + tag['href']
+    return title, videoUrl
+
+def lookart(text):
     url = 'https://www.youtube.com'
     req = requests.get(url + '/results', params={'search_query': text})
     soup = BeautifulSoup(req.content, 'html.parser')
