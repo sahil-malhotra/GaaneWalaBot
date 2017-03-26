@@ -31,8 +31,9 @@ def main():
 
 def start(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id,
-                    text="Welcome to GaaneWalaApp! Enter the name of the song or press /random to get a trending song "
-                         "or to find the latest song by any artist just type 'artist [name of the artist]'")
+                    text="Welcome to GaaneWalaApp! Enter the name of the song |or| press /random to get a trending song "
+                         "|or| to find the latest song by any artist just type 'artist [name of the artist]' "
+                         "|or| lyrics [song-name,artist-name] to get lyrics")
 
 def getRan(bot, update):
     bot.sendMessage(chat_id=update.message.chat_id,
